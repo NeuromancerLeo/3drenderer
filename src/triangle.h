@@ -10,7 +10,7 @@ typedef struct {
     int index_c;
 } triface_t; 
 
-// 该结构体存储三角形面的顶点坐标
+// 该结构体存储 2D 三角形的顶点坐标
 typedef struct {
     vec2_t points[3];
 } triangle_t;
