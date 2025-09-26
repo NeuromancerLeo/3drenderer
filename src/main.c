@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <SDL2\SDL.h>
+#include "array.h"
 #include "display.h"
 #include "vector.h"
 #include "mesh.h"
@@ -21,11 +22,11 @@
 
 vec2_t project(vec3_t point);
 
-triangle_t triangles_to_render[N_MESH_FACES];
+// Array of triangles that should be rendered frame by frame
+triangle_t* triangles_to_render = NULL;
 
 vec3_t camera_posistion = {0, 0, -5};
 float fov_factor = 640; //投影缩放因子
-
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -46,10 +47,6 @@ void setup(void) {
         window_width,
         window_height
     );
-
-    
-
-
     
 }
 
@@ -111,8 +108,10 @@ void update(void) {
     previous_frame_time = SDL_GetTicks();
     //////////////////////////////////////////////////////////////////////////////
 
-    static float _d = 0;
+    // 初始化要渲染的三角形数组
+    triangles_to_render = NULL;
 
+    static float _d = 0;
 
     // Loop all triangle faces of our mesh
     // 整个流程：利用 triface 的索引值获取面的各个顶点，进行变换、投影，
@@ -148,13 +147,8 @@ void update(void) {
         }
 
         // Save the projected triangle in the array of triangles to render
-        triangles_to_render[i] = projected_triangle;
+        array_push(triangles_to_render, projected_triangle);
     }
-
-
-
-
-
 
 }
 
@@ -166,22 +160,17 @@ void render(void) {
 
     draw_grid(0xFF333333);
 
+    int num_triangles = array_length(triangles_to_render);
     // Loop all projected triangles and render them
-    for (int i = 0; i < N_MESH_FACES; i++) {
+    for (int i = 0; i < num_triangles; i++) {
+        
         triangle_t triangle = triangles_to_render[i];
 
-        // draw_rect(triangle.points[0].x, triangle.points[0].y, 3, 3, 0xFFFFFF00);
-        // draw_rect(triangle.points[1].x, triangle.points[1].y, 3, 3, 0xFFFFFF00);
-        // draw_rect(triangle.points[2].x, triangle.points[2].y, 3, 3, 0xFFFFFF00);
-
         draw_triangle(triangle, 0xFF00FFFF);
-
-        // draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[1].x, triangle.points[1].y, 0xFF00FFFF);
-        // draw_line(triangle.points[0].x, triangle.points[0].y, triangle.points[2].x, triangle.points[2].y, 0xFF00FFFF);
-        // draw_line(triangle.points[1].x, triangle.points[1].y, triangle.points[2].x, triangle.points[2].y, 0xFF00FFFF);
-
     }
 
+    // 在每一次帧循环结束后释放 triangles_to_render 数组
+    array_free(triangles_to_render);
 
     render_color_buffer();
     
