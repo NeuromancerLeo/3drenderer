@@ -3,7 +3,7 @@
 
 #include "vector.h"
 
-// 该结构体存储三角形面的顶点索引
+// 该结构体存储三角形面的顶点索引（索引值用来作顶点数组的下标以获取具体顶点）
 typedef struct {
     int index_a;
     int index_b;

@@ -48,6 +48,7 @@ void setup(void) {
         window_height
     );
     
+    load_cube_mesh_data(); // 加载 cube 网格数据（mesh_t）
 }
 
 
@@ -116,15 +117,16 @@ void update(void) {
     // Loop all triangle faces of our mesh
     // 整个流程：利用 triface 的索引值获取面的各个顶点，进行变换、投影，
     //      处理完毕后便将顶点存入 triangles_to_render 数组中
-    for (int i = 0; i < N_MESH_FACES; i++) {
-        triface_t mesh_face = mesh_faces[i];
+    int num_faces = array_length(mesh.faces);
+    for (int i = 0; i < num_faces; i++) {
+        triface_t mesh_face = mesh.faces[i];
         
         // 使用 mesh 每个 face 的 3 个索引值作为 mesh vertices 数组的查询用下标
         // 这样就可以获取到属于 face 的各个 vertices
         vec3_t face_vertices[3];
-        face_vertices[0] = mesh_vertices[mesh_face.index_a - 1];
-        face_vertices[1] = mesh_vertices[mesh_face.index_b - 1];
-        face_vertices[2] = mesh_vertices[mesh_face.index_c - 1];
+        face_vertices[0] = mesh.vertices[mesh_face.index_a - 1];
+        face_vertices[1] = mesh.vertices[mesh_face.index_b - 1];
+        face_vertices[2] = mesh.vertices[mesh_face.index_c - 1];
 
         triangle_t projected_triangle;
 
@@ -177,6 +179,12 @@ void render(void) {
     SDL_RenderPresent(renderer);
 }
 
+// free the memory that was dynamically allocated by the program
+void free_resources(void) {
+    free(color_buffer);
+    array_free(mesh.faces);
+    array_free(mesh.vertices);
+}
 
 int main(int argc, char *argv[]) {
     
@@ -191,6 +199,7 @@ int main(int argc, char *argv[]) {
     }
 
     destroy_window();
+    free_resources();
 
     fprintf(stdout, "The program exited.");
     return 0;

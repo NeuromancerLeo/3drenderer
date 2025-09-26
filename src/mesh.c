@@ -1,7 +1,14 @@
+#include "stddef.h"
+#include "array.h"
 #include "mesh.h"
 
+mesh_t mesh = {
+    .vertices = NULL,
+    .faces = NULL,
+    .rotation = {0, 0, 0}
+};
 
-vec3_t mesh_vertices[N_MESH_VERTICES] = {
+vec3_t cube_vertices[N_CUBE_VERTICES] = {
     {.x = -1, .y = -1, .z = -1}, // 1
     {.x = -1, .y =  1, .z = -1}, // 2
     {.x =  1, .y =  1, .z = -1}, // 3
@@ -13,7 +20,7 @@ vec3_t mesh_vertices[N_MESH_VERTICES] = {
 }; 
 
 
-triface_t mesh_faces[N_MESH_FACES] = {
+triface_t cube_faces[N_CUBE_FACES] = {
     // front
     {.index_a = 1, .index_b = 2, .index_c = 3},
     {.index_a = 1, .index_b = 3, .index_c = 4},
@@ -33,3 +40,14 @@ triface_t mesh_faces[N_MESH_FACES] = {
     {.index_a = 6, .index_b = 8, .index_c = 1},
     {.index_a = 6, .index_b = 1, .index_c = 4}
 };
+
+void load_cube_mesh_data(void) {
+    for (int i = 0; i < N_CUBE_VERTICES; i++) {
+        vec3_t cube_vertex = cube_vertices[i];
+        array_push(mesh.vertices, cube_vertex);
+    }
+    for (int i = 0; i < N_CUBE_FACES; i++) {
+        triface_t cube_face = cube_faces[i];
+        array_push(mesh.faces, cube_face);
+    }
+}
