@@ -1,4 +1,6 @@
-#include "stddef.h"
+#include <stddef.h>
+#include <stdio.h>
+#include <string.h>
 #include "array.h"
 #include "mesh.h"
 
@@ -49,5 +51,50 @@ void load_cube_mesh_data(void) {
     for (int i = 0; i < N_CUBE_FACES; i++) {
         triface_t cube_face = cube_faces[i];
         array_push(mesh.faces, cube_face);
+    }
+}
+
+void load_obj_file_data(char* filename) {
+    // TODO:
+    // Read the contents of the .obj file
+    // and load the vertices and faces in
+    // our mesh.vertices and mesh.faces
+    FILE* file;
+    file = fopen(filename, "r"); // read
+
+    char line[1024];
+
+    while (fgets(line, 1024, file)) {
+        // Vertex information
+        if (strncmp(line, "v ", 2) == 0) {
+            vec3_t vertex;
+
+            // 读取字符串具体数据，存入 vertex
+            sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z);
+
+            array_push(mesh.vertices, vertex);
+        }
+
+        // Face information
+        if (strncmp(line , "f ", 2) == 0) {
+            int vertex_indices[3];
+            int texture_indices[3];
+            int normal_indices[3];
+
+            // 读取字符串具体数据，存入 face
+            sscanf(line, "f %d/%d/%d %d/%d/%d %d/%d/%d",
+                &vertex_indices[0], &texture_indices[0], &normal_indices[0],
+                &vertex_indices[1], &texture_indices[1], &normal_indices[1],
+                &vertex_indices[2], &texture_indices[2], &normal_indices[2]
+            );
+
+            triface_t face = {
+                .index_a = vertex_indices[0],
+                .index_b = vertex_indices[1],
+                .index_c = vertex_indices[2]
+            };
+
+            array_push(mesh.faces, face);
+        }
     }
 }

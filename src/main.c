@@ -48,7 +48,7 @@ void setup(void) {
         window_height
     );
     
-    load_cube_mesh_data(); // 加载 cube 网格数据（mesh_t）
+    load_obj_file_data("./assets/untitled-1xFzUy.obj"); // 加载网格数据（mesh_t）
 }
 
 
@@ -112,6 +112,10 @@ void update(void) {
     // 初始化要渲染的三角形数组
     triangles_to_render = NULL;
 
+    mesh.rotation.x += 0.00;
+    mesh.rotation.y += 0.00;
+    mesh.rotation.z += 0.00;
+
     static float _d = 0;
 
     // Loop all triangle faces of our mesh
@@ -134,11 +138,16 @@ void update(void) {
         for (int j = 0; j < 3; j++) {
             vec3_t transformed_verticex;
             
+            transformed_verticex = face_vertices[j];
             // 旋个转
-            transformed_verticex = vec3_rotate_y(face_vertices[j], _d);
+            transformed_verticex = vec3_rotate_x(transformed_verticex, mesh.rotation.x);
+            transformed_verticex = vec3_rotate_y(transformed_verticex, mesh.rotation.y);
+            transformed_verticex = vec3_rotate_z(transformed_verticex, mesh.rotation.z);
+            
             transformed_verticex.y += sin(_d);
-            _d += 0.0002;
+            _d += 0.00001;
 
+            // Translate the vertex away from the camera
             transformed_verticex.z -= camera_posistion.z;
             
             // 投影
