@@ -25,6 +25,7 @@ vec2_t project(vec3_t point);
 // Array of triangles that should be rendered frame by frame
 triangle_t* triangles_to_render = NULL;
 
+// 世界空间坐标系下的相机坐标
 vec3_t camera_posistion = {0, 0, -5};
 float fov_factor = 640; //投影缩放因子
 
@@ -48,7 +49,7 @@ void setup(void) {
         window_height
     );
     
-    load_obj_file_data("./assets/untitled-1xFzUy.obj"); // 加载网格数据（mesh_t）
+    load_obj_file_data("./assets/f22.obj"); // 加载网格数据（mesh_t）
 }
 
 
@@ -112,9 +113,9 @@ void update(void) {
     // 初始化要渲染的三角形数组
     triangles_to_render = NULL;
 
-    mesh.rotation.x += 0.00;
-    mesh.rotation.y += 0.00;
-    mesh.rotation.z += 0.00;
+    mesh.rotation.x += 0.005;
+    mesh.rotation.y += 0.005;
+    mesh.rotation.z += 0.005;
 
     static float _d = 0;
 
@@ -132,7 +133,7 @@ void update(void) {
         face_vertices[1] = mesh.vertices[mesh_face.index_b - 1];
         face_vertices[2] = mesh.vertices[mesh_face.index_c - 1];
 
-        triangle_t projected_triangle;
+        vec3_t transformed_vertices[3];
 
         // Loop all three vertices of this current face and apply transformations
         for (int j = 0; j < 3; j++) {
@@ -147,11 +148,38 @@ void update(void) {
             transformed_verticex.y += sin(_d);
             _d += 0.00001;
 
-            // Translate the vertex away from the camera
+            // 将世界空间内的顶点坐标转换为相机（视图）空间内的顶点坐标
             transformed_verticex.z -= camera_posistion.z;
+
+            // Save transformed vertex in the array of transformed vertices
+            transformed_vertices[j] = transformed_verticex;
+        }
+
+        // 开始背面剔除检测，该项目规定顺时针顶点顺序为正面
+        vec3_t vector_a = transformed_vertices[0];      /*    a    */
+        vec3_t vector_b = transformed_vertices[1];      /*   / \   */
+        vec3_t vector_c = transformed_vertices[2];      /*  c---b  */
+        
+        vec3_t vector_ab = vec3_sub(vector_b, vector_a);
+        vec3_t vector_ac = vec3_sub(vector_c, vector_a);
+        vec3_t normal = vec3_cross(vector_ab, vector_ac);
+        // 注意！现在顶点坐标已经变换到了视图空间（View-Space）所以这里必须计算的是 to_view，而不是 to_camera（前者即为视图空间的原点坐标，后者的相机坐标处于世界空间）
+        vec3_t ray_to_view = vec3_sub((vec3_t){0,0,0}, vector_a);
+
+        float dot_normal_view = vec3_dot(vec3_normalized(normal), vec3_normalized(ray_to_view));
+        
+        if(dot_normal_view < 0)
+        {
+            continue;   // 剔除
+        }
+
+        triangle_t projected_triangle;
+
+        // Loop all three vertices to perform projection
+        for(int j = 0; j < 3; j++) {
             
             // 投影
-            vec2_t projected_point = project(transformed_verticex);
+            vec2_t projected_point = project(transformed_vertices[j]);
 
             // 保存
             projected_triangle.points[j] = projected_point;
